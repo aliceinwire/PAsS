@@ -5,7 +5,8 @@
 ; Author:         Alice Ferrazzi <alice.ferrazzi@gmail.com>
 ;
 ; Script Function:
-;	simple personal script for doing 25min pomodoro.
+;	Simple personal script for doing pomodoro. And send email to beeminder.
+;   Please take care that is completing blocking the pc during pomodoro.
 ;
 
 ;#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
@@ -16,10 +17,31 @@
 
 applicationname=BlockInput
 
+; TODO: make possible to send comment. as now escaping " with "" looks not working.
+; more info here: https://www.beeminder.com/faq#qcut
+;
+sendMail("bot@beeminder.com","your-password","your-email","yourbeeminderusername/yourgoalname","^ 1 ")
+
+sendMail(emailToAddress,emailPass,emailFromAddress,emailSubject,emailMessage)
+	{
+	global
+	IfNotExist, %A_MyDocuments%\mailsend1.17b12.exe
+		{
+		URLDownloadToFile, https://mailsend.googlecode.com/files/mailsend1.17b12.exe, %A_MyDocuments%\mailsend1.17b12.exe
+		}
+	Run, %A_MyDocuments%\mailsend1.17b12.exe -to %emailToAddress% -from %emailFromAddress% -ssl -smtp smtp.gmail.com -port 465 -sub "%emailSubject%" -M "%emailMessage%" +cc +bc -q -auth-plain -user "%emailFromAddress%" -pass "%emailPass%"
+	WinWait, %A_MyDocuments%\mailsend1.17b12.exe
+	IfWinExist, %A_MyDocuments%\mailsend1.17b12.exe
+		{
+		WinHide
+		}
+	}
+ExitApp
 TryAgain:
 focus_time = 0
 
-InputBox, choice , Input Box Using Choices, Enter your choice number.`n(1) focus 25min`, (2) focus 40min`, (3) focus 5min
+
+InputBox, choice , Input Box Using Choices, Enter your choice number.`n(1) focus 25min`, (2) focus 40min`, (3) focus 180min
 If Errorlevel
 {    MsgBox,0,, You entered no choice. Please try again.
      goto TryAgain
@@ -33,8 +55,8 @@ If (Choice = 2)
       focus_time_sec := 40 * 60
 }
 If (choice = 3)
-{     MsgBox 0,,focus 5min
-	  focus_time_sec := 5 * 60
+{     MsgBox 0,,focus 180min
+	  focus_time_sec := 180 * 60
 	  
 }
 If (goodchoice = 0)
